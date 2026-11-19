@@ -1,0 +1,18 @@
+{
+  "name": "TaskFlow Duo",
+  "short_name": "TaskFlow",
+  "description": "App quản lý công việc, chi tiêu và lịch biểu 2 người",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6f8f5",
+  "theme_color": "#588157",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flatsome.com/512/906/906334.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

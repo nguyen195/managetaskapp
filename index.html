@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow Duo - Pastel Avocado & Sky Blue</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            avocado: {
+              50: '#f4f8f4',
+              100: '#e5efe5',
+              200: '#cce0cc',
+              300: '#a6c7a7',
+              500: '#588157',
+              600: '#476946',
+              700: '#3a5339',
+              800: '#314330',
+            },
+            pastelBlue: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              400: '#38bdf8',
+              500: '#0284c7',
+              600: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f6f8f5;
+      color: #1e293b;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #edf2ed;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c3d9c3;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #9ebb9e;
+    }
+    .kanban-col {
+      min-height: calc(100vh - 360px);
+    }
+    .task-card {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: grab;
+      box-shadow: 0 2px 8px rgba(88, 129, 87, 0.06);
+    }
+    .task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(88, 129, 87, 0.12);
+    }
+    .task-card:active {
+      cursor: grabbing;
+    }
+    .task-card.dragging {
+      opacity: 0.4;
+      transform: scale(0.97);
+    }
+    .drag-over {
+      background-color: #e5efe5 !important;
+      border-color: #588157 !important;
+    }
+  </style>
+</head>
+<body class="bg-[#f6f8f5] text-slate-800 min-h-screen flex flex-col">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="border-b border-[#e2ebe2] bg-white/90 backdrop-blur-md sticky top-0 z-30 px-6 py-3.5 shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+      <!-- Logo & App Name -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-avocado-500 to-pastelBlue-400 flex items-center justify-center shadow-md shadow-avocado-500/20">
+          <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-base text-slate-900 tracking-tight">TaskFlow Duo</h1>
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-avocado-100 text-avocado-700 border border-avocado-200 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-avocado-500 animate-pulse"></span>2 Người
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">Dự án · Việc hôm nay · Lịch biểu · Sổ quỹ Chi tiêu</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <nav class="flex items-center gap-1.5 bg-[#edf3ed] p-1.5 rounded-2xl border border-[#d8e5d8] text-xs font-semibold">
+        <button id="navTabTasks" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-white bg-avocado-500 shadow-sm transition">
+          <i data-lucide="kanban" class="w-4 h-4"></i>
+          <span>Công việc & Dự án</span>
+        </button>
+        <button id="navTabExpenses" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">
+          <i data-lucide="wallet" class="w-4 h-4"></i>
+          <span>Sổ quỹ Chi tiêu</span>
+        </button>
+        <button id="navTabSchedule" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">
+          <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+          <span>Lịch biểu & Deadline</span>
+        </button>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2.5">
+        <button id="btnOpenSyncModal" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-pastelBlue-50 text-pastelBlue-600 border border-pastelBlue-200 hover:bg-pastelBlue-100 text-xs font-semibold transition">
+          <i data-lucide="sheet" class="w-4 h-4 text-pastelBlue-500"></i>
+          <span>Google Sheets</span>
+        </button>
+
+        <button id="btnQuickAdd" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-avocado-500 hover:bg-avocado-600 text-white font-semibold text-xs shadow-md shadow-avocado-500/25 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span id="btnQuickAddText">Thêm việc</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- TODAY'S FOCUS & DEADLINE ALERT BANNER (PASTEL GRADIENT) -->
+  <section class="max-w-7xl w-full mx-auto px-6 pt-5">
+    <div class="bg-gradient-to-r from-avocado-50 via-white to-pastelBlue-50 border border-avocado-200/80 rounded-2xl p-4.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <!-- Left: Today's Summary & Greeting -->
+      <div class="flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-white border border-avocado-200 flex items-center justify-center text-avocado-600 shadow-sm flex-shrink-0">
+          <i data-lucide="target" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="font-bold text-sm text-slate-800">Điểm chạm Ngày mới (Today's Focus)</h2>
+            <span id="todayDateLabel" class="text-xs text-slate-500 font-mono"></span>
+          </div>
+          <p id="todayStatusText" class="text-xs text-slate-600 mt-0.5">
+            Đang quét các công việc ưu tiên và tiến độ dự án...
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: Deadline & Overdue Counters -->
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="px-3.5 py-2 rounded-xl bg-rose-50 border border-rose-200 flex items-center gap-2.5">
+          <i data-lucide="alert-octagon" class="w-4 h-4 text-rose-500"></i>
+          <div>
+            <span class="text-[10px] text-slate-500 block uppercase font-bold">Quá hạn</span>
+            <span id="badgeOverdueCount" class="text-xs font-bold text-rose-600">0 việc</span>
+          </div>
+        </div>
+
+        <div class="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2.5">
+          <i data-lucide="clock" class="w-4 h-4 text-amber-500"></i>
+          <div>
+            <span class="text-[10px] text-slate-500 block uppercase font-bold">Hôm nay</span>
+            <span id="badgeDueTodayCount" class="text-xs font-bold text-amber-600">0 việc</span>
+          </div>
+        </div>
+
+        <div class="px-3.5 py-2 rounded-xl bg-pastelBlue-50 border border-pastelBlue-200 flex items-center gap-2.5">
+          <i data-lucide="hourglass" class="w-4 h-4 text-pastelBlue-500"></i>
+          <div>
+            <span class="text-[10px] text-slate-500 block uppercase font-bold">Sắp tới hạn (≤7 ngày)</span>
+            <span id="badgeUpcomingCount" class="text-xs font-bold text-pastelBlue-600">0 việc</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main class="max-w-7xl w-full mx-auto p-6 flex-1 flex flex-col gap-6">
+
+    <!-- ═════════════════════════════════════════════════════════════════════════════
+         VIEW 1: TASKS & PROJECTS (KANBAN)
+    ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div id="viewTasks" class="view-panel space-y-6">
+
+      <!-- PROJECT CARDS ROW -->
+      <section>
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="folder-kanban" class="w-4 h-4 text-avocado-600"></i>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Dự án Quan trọng & Tiến độ</h3>
+          </div>
+          <button id="btnNewProject" class="text-xs text-avocado-600 hover:text-avocado-700 flex items-center gap-1 font-semibold">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Thêm dự án
+          </button>
+        </div>
+        <div id="projectCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Injected via JS -->
+        </div>
+      </section>
+
+      <!-- SEARCH, FILTER & ASSIGNEE SELECTOR -->
+      <section class="bg-white border border-[#e2ebe2] rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+        <!-- Search bar -->
+        <div class="relative flex-1 min-w-[240px]">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input type="text" id="taskSearchInput" placeholder="Tìm theo tên công việc, ghi chú, dự án..."
+            class="w-full pl-9 pr-4 py-2 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-avocado-500 transition">
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Assignee Filter (2 người) -->
+          <div class="flex items-center bg-[#f0f4f0] border border-[#d8e5d8] rounded-xl p-1 text-xs">
+            <button id="filterAssigneeAll" class="assignee-toggle-btn px-3 py-1.5 rounded-lg font-bold bg-white text-avocado-700 shadow-sm transition">Tất cả</button>
+            <button id="filterAssigneeMe" class="assignee-toggle-btn px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition">👤 Bạn</button>
+            <button id="filterAssigneePartner" class="assignee-toggle-btn px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition">🤝 Cộng sự</button>
+          </div>
+
+          <!-- Project Filter -->
+          <select id="filterProjectSelect" class="bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-avocado-500 transition">
+            <option value="ALL">Mọi dự án</option>
+          </select>
+
+          <!-- Priority Filter -->
+          <select id="filterPrioritySelect" class="bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-avocado-500 transition">
+            <option value="ALL">Mọi độ ưu tiên</option>
+            <option value="URGENT">Khẩn cấp (Urgent)</option>
+            <option value="HIGH">Cao (High)</option>
+            <option value="MEDIUM">Trung bình</option>
+            <option value="LOW">Thấp</option>
+          </select>
+
+          <!-- Export CSV -->
+          <button id="btnExportTasksCSV" title="Xuất CSV công việc" class="p-2 bg-[#f6f8f5] hover:bg-[#edf3ed] border border-[#d8e5d8] rounded-xl text-slate-600 transition">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- KANBAN COLUMNS -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- TO DO (XANH DƯƠNG PASTEL) -->
+        <div class="flex flex-col bg-[#f0f5fa] border border-[#d3e2ee] rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#d3e2ee]">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-pastelBlue-400"></span>
+              <h4 class="font-bold text-sm text-slate-800">Cần làm (To Do)</h4>
+              <span id="badgeCountTodo" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-pastelBlue-100 text-pastelBlue-600 border border-pastelBlue-200">0</span>
+            </div>
+            <button onclick="openTaskModal('TODO')" class="text-slate-500 hover:text-pastelBlue-500 transition p-1 rounded-lg hover:bg-white/80" title="Thêm việc vào To Do">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div id="colTodo" data-status="TODO" class="kanban-col flex flex-col gap-3 flex-1 custom-scrollbar overflow-y-auto rounded-xl p-1"></div>
+        </div>
+
+        <!-- DOING (XANH BƠ PASTEL) -->
+        <div class="flex flex-col bg-[#eef5ee] border border-[#d1e5d1] rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#d1e5d1]">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-avocado-500"></span>
+              <h4 class="font-bold text-sm text-slate-800">Đang làm (Doing)</h4>
+              <span id="badgeCountDoing" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-avocado-100 text-avocado-700 border border-avocado-200">0</span>
+            </div>
+            <button onclick="openTaskModal('DOING')" class="text-slate-500 hover:text-avocado-600 transition p-1 rounded-lg hover:bg-white/80" title="Thêm việc vào Doing">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div id="colDoing" data-status="DOING" class="kanban-col flex flex-col gap-3 flex-1 custom-scrollbar overflow-y-auto rounded-xl p-1"></div>
+        </div>
+
+        <!-- DONE (EMERALD MINT PASTEL) -->
+        <div class="flex flex-col bg-[#edf7f2] border border-[#d0ebd9] rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#d0ebd9]">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <h4 class="font-bold text-sm text-slate-800">Hoàn thành (Done)</h4>
+              <span id="badgeCountDone" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">0</span>
+            </div>
+            <button onclick="openTaskModal('DONE')" class="text-slate-500 hover:text-emerald-600 transition p-1 rounded-lg hover:bg-white/80" title="Thêm việc vào Done">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div id="colDone" data-status="DONE" class="kanban-col flex flex-col gap-3 flex-1 custom-scrollbar overflow-y-auto rounded-xl p-1"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════════════════════
+         VIEW 2: SỔ QUỸ CHI TIÊU & CẤN TRỪ (EXPENSES)
+    ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div id="viewExpenses" class="view-panel space-y-6 hidden">
+
+      <!-- EXPENSE SUMMARY KPI CARDS -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Spent -->
+        <div class="bg-white border border-[#e2ebe2] rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Tổng đã chi</p>
+            <h3 id="statTotalExpense" class="text-2xl font-extrabold text-slate-900 mt-1">0 đ</h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">Toàn bộ dự án & chung</p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-pastelBlue-50 border border-pastelBlue-200 flex items-center justify-center text-pastelBlue-500">
+            <i data-lucide="coins" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- You Spent -->
+        <div class="bg-white border border-[#e2ebe2] rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Bạn đã chi</p>
+            <h3 id="statMeExpense" class="text-2xl font-extrabold text-pastelBlue-600 mt-1">0 đ</h3>
+            <p id="statMeSharePct" class="text-[11px] text-slate-500 mt-0.5">0% tổng chi</p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-pastelBlue-50 border border-pastelBlue-200 flex items-center justify-center text-pastelBlue-600">
+            <i data-lucide="user-check" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Partner Spent -->
+        <div class="bg-white border border-[#e2ebe2] rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Cộng sự đã chi</p>
+            <h3 id="statPartnerExpense" class="text-2xl font-extrabold text-avocado-600 mt-1">0 đ</h3>
+            <p id="statPartnerSharePct" class="text-[11px] text-slate-500 mt-0.5">0% tổng chi</p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-avocado-50 border border-avocado-200 flex items-center justify-center text-avocado-600">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Settlement (Ai nợ ai) -->
+        <div class="bg-white border border-[#e2ebe2] rounded-2xl p-4.5 flex items-center justify-between shadow-sm">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Đối soát / Cấn trừ</p>
+            <h3 id="statSettlement" class="text-base font-bold text-emerald-600 mt-1">Cân bằng 50-50</h3>
+            <p id="statSettlementSub" class="text-[11px] text-slate-500 mt-0.5">Chia đều 50-50</p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+            <i data-lucide="scale" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPENSE ACTIONS & FILTER BAR -->
+      <section class="bg-white border border-[#e2ebe2] rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+        <div class="flex items-center gap-2">
+          <button id="btnOpenAddExpenseModal" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-avocado-500 hover:bg-avocado-600 text-white font-semibold text-xs shadow-sm transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Thêm khoản chi</span>
+          </button>
+          <button id="btnExportExpensesCSV" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#f6f8f5] hover:bg-[#edf3ed] text-slate-700 border border-[#d8e5d8] text-xs font-semibold transition">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Xuất CSV</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <select id="filterExpensePayer" class="bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-avocado-500 transition">
+            <option value="ALL">Mọi người chi</option>
+            <option value="Bạn">Chỉ Bạn chi</option>
+            <option value="Cộng sự">Chỉ Cộng sự chi</option>
+          </select>
+          <select id="filterExpenseProject" class="bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:border-avocado-500 transition">
+            <option value="ALL">Mọi dự án / chung</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- EXPENSE TABLE -->
+      <section class="bg-white border border-[#e2ebe2] rounded-2xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#f0f4f0] text-slate-600 border-b border-[#e2ebe2] font-bold uppercase tracking-wider">
+              <tr>
+                <th class="py-3.5 px-4">Ngày</th>
+                <th class="py-3.5 px-4">Khoản mục / Nội dung</th>
+                <th class="py-3.5 px-4">Dự án</th>
+                <th class="py-3.5 px-4">Người trả tiền</th>
+                <th class="py-3.5 px-4">Phân chia</th>
+                <th class="py-3.5 px-4 text-right">Số tiền</th>
+                <th class="py-3.5 px-4 text-center">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="expenseTableBody" class="divide-y divide-[#edf3ed] text-slate-700">
+              <!-- Injected via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════════════════════
+         VIEW 3: SCHEDULE & DEADLINE TIMELINE
+    ═══════════════════════════════════════════════════════════════════════════════ -->
+    <div id="viewSchedule" class="view-panel space-y-6 hidden">
+      <div class="bg-white border border-[#e2ebe2] rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-[#e2ebe2]">
+          <div>
+            <h3 class="font-bold text-base text-slate-900">Lịch biểu & Đếm ngược Hạn chót (Deadlines)</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Xếp theo thứ tự từ sát deadline nhất đến xa nhất</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="flex items-center gap-1.5 text-xs text-rose-600 font-medium"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Quá hạn / Hôm nay</span>
+            <span class="flex items-center gap-1.5 text-xs text-amber-600 font-medium ml-2"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Trong 3 ngày</span>
+            <span class="flex items-center gap-1.5 text-xs text-avocado-600 font-medium ml-2"><span class="w-2 h-2 rounded-full bg-avocado-500"></span> An toàn</span>
+          </div>
+        </div>
+
+        <div id="scheduleTimelineContainer" class="space-y-3">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════════
+       MODAL 1: ADD / EDIT TASK
+  ═══════════════════════════════════════════════════════════════════════════════ -->
+  <div id="taskModal" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-[#e2ebe2] rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4.5 border-b border-[#edf3ed]">
+        <h3 id="taskModalTitle" class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-5 h-5 text-avocado-600"></i>
+          Thêm công việc mới
+        </h3>
+        <button onclick="closeModal('taskModal')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-[#edf3ed] transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="taskForm" class="p-6 space-y-4">
+        <input type="hidden" id="taskIdInput">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Tên công việc <span class="text-rose-500">*</span></label>
+          <input type="text" id="taskTitleInput" required placeholder="Nhập tên nhiệm vụ..."
+            class="w-full px-3.5 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-avocado-500 transition">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Mô tả chi tiết</label>
+          <textarea id="taskDescInput" rows="2" placeholder="Ghi chú, mục tiêu hoặc tiêu chuẩn hoàn thành..."
+            class="w-full px-3.5 py-2 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-avocado-500 transition custom-scrollbar"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Thuộc Dự án</label>
+            <select id="taskProjectInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Người phụ trách</label>
+            <select id="taskAssigneeInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition">
+              <option value="Bạn">👤 Bạn</option>
+              <option value="Cộng sự">🤝 Cộng sự</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Trạng thái</label>
+            <select id="taskStatusInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition">
+              <option value="TODO">Cần làm</option>
+              <option value="DOING">Đang làm</option>
+              <option value="DONE">Hoàn thành</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Độ ưu tiên</label>
+            <select id="taskPriorityInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition">
+              <option value="URGENT">Khẩn cấp</option>
+              <option value="HIGH">Cao</option>
+              <option value="MEDIUM" selected>Trung bình</option>
+              <option value="LOW">Thấp</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Hạn chót (Deadline)</label>
+            <input type="date" id="taskDueDateInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-4 border-t border-[#edf3ed]">
+          <button type="button" onclick="closeModal('taskModal')" class="px-4 py-2 rounded-xl bg-[#f0f4f0] hover:bg-[#e2ebe2] text-slate-600 text-xs font-semibold transition">Hủy</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-avocado-500 hover:bg-avocado-600 text-white text-xs font-bold shadow-sm transition">Lưu công việc</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════════
+       MODAL 2: ADD / EDIT EXPENSE
+  ═══════════════════════════════════════════════════════════════════════════════ -->
+  <div id="expenseModal" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-[#e2ebe2] rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4.5 border-b border-[#edf3ed]">
+        <h3 id="expenseModalTitle" class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="badge-dollar-sign" class="w-5 h-5 text-avocado-600"></i>
+          Thêm khoản chi tiêu mới
+        </h3>
+        <button onclick="closeModal('expenseModal')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-[#edf3ed] transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="expenseForm" class="p-6 space-y-4">
+        <input type="hidden" id="expenseIdInput">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Nội dung chi tiêu <span class="text-rose-500">*</span></label>
+          <input type="text" id="expenseTitleInput" required placeholder="Ví dụ: Mua domain, Thuê server, Cà phê họp bàn..."
+            class="w-full px-3.5 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-avocado-500 transition">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Số tiền (VNĐ) <span class="text-rose-500">*</span></label>
+            <input type="number" id="expenseAmountInput" required min="1000" step="1000" placeholder="Ví dụ: 250000"
+              class="w-full px-3.5 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-sm font-bold text-avocado-600 placeholder-slate-400 focus:outline-none focus:border-avocado-500 transition">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Ngày chi</label>
+            <input type="date" id="expenseDateInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Thuộc Dự án</label>
+            <select id="expenseProjectInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Ai đã trả tiền?</label>
+            <select id="expensePayerInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition">
+              <option value="Bạn">👤 Bạn đã chi</option>
+              <option value="Cộng sự">🤝 Cộng sự đã chi</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Cơ chế phân chia</label>
+          <select id="expenseSplitInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition">
+            <option value="SPLIT_50_50">Chia đều 50 / 50 (Cấn trừ vào sổ nợ)</option>
+            <option value="FOR_ME">Khoản chi riêng cho Bạn</option>
+            <option value="FOR_PARTNER">Khoản chi riêng cho Cộng sự</option>
+          </select>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-4 border-t border-[#edf3ed]">
+          <button type="button" onclick="closeModal('expenseModal')" class="px-4 py-2 rounded-xl bg-[#f0f4f0] hover:bg-[#e2ebe2] text-slate-600 text-xs font-semibold transition">Hủy</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-avocado-500 hover:bg-avocado-600 text-white text-xs font-bold shadow-sm transition">Lưu chi tiêu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════════
+       MODAL 3: ADD PROJECT
+  ═══════════════════════════════════════════════════════════════════════════════ -->
+  <div id="projectModal" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-[#e2ebe2] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4.5 border-b border-[#edf3ed]">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="folder-plus" class="w-5 h-5 text-avocado-600"></i>
+          Thêm Dự án mới
+        </h3>
+        <button onclick="closeModal('projectModal')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-[#edf3ed] transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="projectForm" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Tên dự án <span class="text-rose-500">*</span></label>
+          <input type="text" id="projectNameInput" required placeholder="Ví dụ: Xây dựng AI Dashboard, Khóa học AI4S..."
+            class="w-full px-3.5 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-avocado-500 transition">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Hạn chót dự án (Target Deadline)</label>
+          <input type="date" id="projectDueDateInput" class="w-full px-3 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 focus:outline-none focus:border-avocado-500 transition">
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-4 border-t border-[#edf3ed]">
+          <button type="button" onclick="closeModal('projectModal')" class="px-4 py-2 rounded-xl bg-[#f0f4f0] hover:bg-[#e2ebe2] text-slate-600 text-xs font-semibold transition">Hủy</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-avocado-500 hover:bg-avocado-600 text-white text-xs font-bold shadow-sm transition">Tạo dự án</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════════
+       MODAL 4: GOOGLE SHEETS SYNC
+  ═══════════════════════════════════════════════════════════════════════════════ -->
+  <div id="syncModal" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-[#e2ebe2] rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4.5 border-b border-[#edf3ed]">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="sheet" class="w-5 h-5 text-pastelBlue-600"></i>
+          Đồng bộ Google Sheets (Tasks & Expenses)
+        </h3>
+        <button onclick="closeModal('syncModal')" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-[#edf3ed] transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs text-slate-600">
+        <p class="leading-relaxed">
+          Ứng dụng lưu trữ tự động trên máy và có thể đồng bộ tức thì cho cả 2 người qua Google Apps Script Web App (hỗ trợ cả tab <strong class="text-avocado-600">Tasks</strong> và tab <strong class="text-pastelBlue-600">Expenses</strong>).
+        </p>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Web App URL từ Google Apps Script:</label>
+          <input type="url" id="gasEndpointInput" placeholder="https://script.google.com/macros/s/.../exec"
+            class="w-full px-3.5 py-2.5 bg-[#f6f8f5] border border-[#d8e5d8] rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-avocado-500 transition">
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <button id="btnFetchFromSheet" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#f0f4f0] hover:bg-[#e2ebe2] text-slate-700 font-semibold border border-[#d8e5d8] transition">
+            <i data-lucide="download-cloud" class="w-4 h-4 text-pastelBlue-600"></i>
+            Tải dữ liệu từ Sheet
+          </button>
+
+          <button id="btnPushToSheet" class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-avocado-500 hover:bg-avocado-600 text-white font-bold shadow-sm transition">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+            Đẩy dữ liệu lên Sheet
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════════
+       JAVASCRIPT APPLICATION LOGIC
+  ═══════════════════════════════════════════════════════════════════════════════ -->
+  <script>
+    // ─── INITIAL DATA ───────────────────────────────────────────────────────────
+    const DEFAULT_PROJECTS = [
+      { id: "PRJ-1", name: "Dự án AI Dashboard C-Level", dueDate: "2026-11-25", color: "from-avocado-400 to-pastelBlue-400" },
+      { id: "PRJ-2", name: "Khóa học AI4S & Nghiên cứu", dueDate: "2026-11-30", color: "from-pastelBlue-300 to-teal-300" },
+      { id: "PRJ-3", name: "Kế hoạch Vận hành Chung", dueDate: "2026-12-15", color: "from-emerald-300 to-avocado-300" }
+    ];
+
+    const DEFAULT_TASKS = [
+      {
+        id: "T-101",
+        title: "Hoàn thiện Báo cáo Điều hành C-Level Quý 4",
+        desc: "Tổng hợp các chỉ số P&L, doanh thu từng phân khúc và hiệu suất vận hành.",
+        projectId: "PRJ-1",
+        assignee: "Bạn",
+        status: "DOING",
+        priority: "URGENT",
+        dueDate: "2026-11-19" // Hôm nay
+      },
+      {
+        id: "T-102",
+        title: "Tối ưu ngân sách chiến dịch Marketing tháng 12",
+        desc: "Rà soát chỉ số CPA, nâng cao ROI vượt ngưỡng 1.5x cho sản phẩm Premium.",
+        projectId: "PRJ-2",
+        assignee: "Cộng sự",
+        status: "TODO",
+        priority: "HIGH",
+        dueDate: "2026-11-21"
+      },
+      {
+        id: "T-103",
+        title: "Kiểm tra tỷ lệ lỗi quy trình đóng gói dây chuyền 2",
+        desc: "Đảm bảo Defect Rate duy trì ổn định dưới 3.0% trong đợt cao điểm.",
+        projectId: "PRJ-3",
+        assignee: "Bạn",
+        status: "DOING",
+        priority: "MEDIUM",
+        dueDate: "2026-11-25"
+      },
+      {
+        id: "T-104",
+        title: "Đồng bộ hóa dữ liệu khách hàng sang Data Warehouse",
+        desc: "Xác thực danh mục Standard và Economy không bị sót dữ liệu.",
+        projectId: "PRJ-1",
+        assignee: "Cộng sự",
+        status: "DONE",
+        priority: "LOW",
+        dueDate: "2026-11-18"
+      }
+    ];
+
+    const DEFAULT_EXPENSES = [
+      {
+        id: "EXP-1",
+        title: "Chi phí Server Cloud & API Gemini",
+        amount: 450000,
+        payer: "Bạn",
+        projectId: "PRJ-1",
+        splitType: "SPLIT_50_50",
+        date: "2026-11-15"
+      },
+      {
+        id: "EXP-2",
+        title: "Mua tài liệu khóa học & giáo trình AI4S",
+        amount: 600000,
+        payer: "Cộng sự",
+        projectId: "PRJ-2",
+        splitType: "SPLIT_50_50",
+        date: "2026-11-16"
+      },
+      {
+        id: "EXP-3",
+        title: "Cà phê thảo luận chiến lược & dự án",
+        amount: 120000,
+        payer: "Bạn",
+        projectId: "PRJ-3",
+        splitType: "SPLIT_50_50",
+        date: "2026-11-18"
+      }
+    ];
+
+    // ─── LOCAL STORAGE KEYS & APP STATE ─────────────────────────────────────────
+    const STORAGE_KEY_PROJECTS = "taskflow_duo_pastel_projects";
+    const STORAGE_KEY_TASKS = "taskflow_duo_pastel_tasks";
+    const STORAGE_KEY_EXPENSES = "taskflow_duo_pastel_expenses";
+    const STORAGE_KEY_ENDPOINT = "taskflow_duo_pastel_gas_endpoint";
+
+    let projects = [];
+    let tasks = [];
+    let expenses = [];
+    let currentAssigneeFilter = "ALL";
+    let draggedTaskId = null;
+
+    // Load data from LocalStorage
+    function loadData() {
+      try {
+        projects = JSON.parse(localStorage.getItem(STORAGE_KEY_PROJECTS)) || DEFAULT_PROJECTS;
+        tasks = JSON.parse(localStorage.getItem(STORAGE_KEY_TASKS)) || DEFAULT_TASKS;
+        expenses = JSON.parse(localStorage.getItem(STORAGE_KEY_EXPENSES)) || DEFAULT_EXPENSES;
+      } catch (e) {
+        projects = [...DEFAULT_PROJECTS];
+        tasks = [...DEFAULT_TASKS];
+        expenses = [...DEFAULT_EXPENSES];
+      }
+      saveData();
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(projects));
+      localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks));
+      localStorage.setItem(STORAGE_KEY_EXPENSES, JSON.stringify(expenses));
+      renderAll();
+    }
+
+    // ─── FORMATTERS & UTILITIES ─────────────────────────────────────────────────
+    function formatCurrency(num) {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num).replace('₫', 'đ');
+    }
+
+    function getTodayString() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function getDaysDiff(dateStr) {
+      if (!dateStr) return 999;
+      const today = new Date(getTodayString());
+      const target = new Date(dateStr);
+      return Math.round((target - today) / (1000 * 60 * 60 * 24));
+    }
+
+    // ─── NAVIGATION TAB SWITCHER ────────────────────────────────────────────────
+    let currentTab = "TASKS";
+    const navBtnTasks = document.getElementById('navTabTasks');
+    const navBtnExpenses = document.getElementById('navTabExpenses');
+    const navBtnSchedule = document.getElementById('navTabSchedule');
+    const viewTasks = document.getElementById('viewTasks');
+    const viewExpenses = document.getElementById('viewExpenses');
+    const viewSchedule = document.getElementById('viewSchedule');
+    const btnQuickAddText = document.getElementById('btnQuickAddText');
+
+    function switchTab(tab) {
+      currentTab = tab;
+      [navBtnTasks, navBtnExpenses, navBtnSchedule].forEach(b => {
+        b.className = "nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition";
+      });
+      [viewTasks, viewExpenses, viewSchedule].forEach(v => v.classList.add('hidden'));
+
+      if (tab === "TASKS") {
+        navBtnTasks.className = "nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-white bg-avocado-500 shadow-sm transition";
+        viewTasks.classList.remove('hidden');
+        btnQuickAddText.innerText = "Thêm việc";
+      } else if (tab === "EXPENSES") {
+        navBtnExpenses.className = "nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-white bg-avocado-500 shadow-sm transition";
+        viewExpenses.classList.remove('hidden');
+        btnQuickAddText.innerText = "Thêm khoản chi";
+      } else {
+        navBtnSchedule.className = "nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-white bg-pastelBlue-500 shadow-sm transition";
+        viewSchedule.classList.remove('hidden');
+        btnQuickAddText.innerText = "Thêm việc";
+      }
+      lucide.createIcons();
+    }
+
+    navBtnTasks.addEventListener('click', () => switchTab('TASKS'));
+    navBtnExpenses.addEventListener('click', () => switchTab('EXPENSES'));
+    navBtnSchedule.addEventListener('click', () => switchTab('SCHEDULE'));
+
+    document.getElementById('btnQuickAdd').addEventListener('click', () => {
+      if (currentTab === "EXPENSES") {
+        openExpenseModal();
+      } else {
+        openTaskModal('TODO');
+      }
+    });
+
+    // ─── RENDER TODAY'S FOCUS & DEADLINE SUMMARY ────────────────────────────────
+    function renderTodayFocus() {
+      const todayStr = getTodayString();
+      const options = { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' };
+      document.getElementById('todayDateLabel').innerText = new Date().toLocaleDateString('vi-VN', options);
+
+      const overdueTasks = tasks.filter(t => t.dueDate && t.dueDate < todayStr && t.status !== 'DONE');
+      const dueTodayTasks = tasks.filter(t => t.dueDate === todayStr && t.status !== 'DONE');
+      const upcomingTasks = tasks.filter(t => {
+        if (!t.dueDate || t.status === 'DONE') return false;
+        const diff = getDaysDiff(t.dueDate);
+        return diff > 0 && diff <= 7;
+      });
+
+      document.getElementById('badgeOverdueCount').innerText = `${overdueTasks.length} việc`;
+      document.getElementById('badgeDueTodayCount').innerText = `${dueTodayTasks.length} việc`;
+      document.getElementById('badgeUpcomingCount').innerText = `${upcomingTasks.length} việc`;
+
+      let summaryMsg = "";
+      if (overdueTasks.length > 0) {
+        summaryMsg = `⚠️ Bạn có <strong>${overdueTasks.length} việc đã quá hạn</strong> và <strong>${dueTodayTasks.length} việc</strong> đến hạn hôm nay!`;
+      } else if (dueTodayTasks.length > 0) {
+        summaryMsg = `🎯 Hôm nay có <strong>${dueTodayTasks.length} việc</strong> cần hoàn thành. Hãy tập trung giải quyết nhé!`;
+      } else {
+        summaryMsg = `✨ Hôm nay không có việc gấp bị tồn đọng. Dự án đang vận hành rất êm xuôi!`;
+      }
+      document.getElementById('todayStatusText').innerHTML = summaryMsg;
+    }
+
+    // ─── RENDER PROJECTS ROW & DROPDOWNS ─────────────────────────────────────────
+    function renderProjects() {
+      const container = document.getElementById('projectCardsContainer');
+      const taskProjSelect = document.getElementById('taskProjectInput');
+      const expenseProjSelect = document.getElementById('expenseProjectInput');
+      const filterProjSelect = document.getElementById('filterProjectSelect');
+      const filterExpenseProjSelect = document.getElementById('filterExpenseProject');
+
+      let optionsHtml = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      taskProjSelect.innerHTML = optionsHtml;
+      expenseProjSelect.innerHTML = optionsHtml;
+
+      filterProjSelect.innerHTML = `<option value="ALL">Mọi dự án</option>` + optionsHtml;
+      filterExpenseProjSelect.innerHTML = `<option value="ALL">Mọi dự án / chung</option>` + optionsHtml;
+
+      container.innerHTML = projects.map(p => {
+        const pTasks = tasks.filter(t => t.projectId === p.id);
+        const total = pTasks.length;
+        const done = pTasks.filter(t => t.status === 'DONE').length;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        const diff = getDaysDiff(p.dueDate);
+
+        let badgeDeadline = `<span class="text-[10px] text-slate-500 font-medium">Hạn: ${p.dueDate || 'Chưa set'}</span>`;
+        if (p.dueDate) {
+          if (diff < 0) badgeDeadline = `<span class="text-[10px] text-rose-600 font-bold flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> Quá hạn</span>`;
+          else if (diff <= 3) badgeDeadline = `<span class="text-[10px] text-amber-600 font-bold">Còn ${diff} ngày</span>`;
+        }
+
+        return `
+          <div class="bg-white border border-[#e2ebe2] rounded-2xl p-4.5 flex flex-col justify-between hover:border-avocado-300 transition shadow-sm">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r ${p.color || 'from-avocado-400 to-pastelBlue-400'}"></span>
+                ${badgeDeadline}
+              </div>
+              <h4 class="font-bold text-xs text-slate-800 line-clamp-1">${p.name}</h4>
+              <p class="text-[11px] text-slate-500 mt-1">${done}/${total} việc hoàn thành</p>
+            </div>
+            <div class="mt-3.5">
+              <div class="flex items-center justify-between text-[10px] font-bold mb-1">
+                <span class="text-slate-500">Tiến độ</span>
+                <span class="text-avocado-600">${pct}%</span>
+              </div>
+              <div class="w-full bg-[#edf3ed] rounded-full h-2 overflow-hidden">
+                <div class="bg-gradient-to-r from-avocado-400 to-pastelBlue-400 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ─── RENDER KANBAN BOARD ────────────────────────────────────────────────────
+    function getPriorityBadge(priority) {
+      switch (priority) {
+        case "URGENT":
+          return `<span class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>Khẩn cấp
+                  </span>`;
+        case "HIGH":
+          return `<span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">Cao</span>`;
+        case "MEDIUM":
+          return `<span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-pastelBlue-100 text-pastelBlue-700 border border-pastelBlue-200">Trung bình</span>`;
+        case "LOW":
+        default:
+          return `<span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">Thấp</span>`;
+      }
+    }
+
+    function renderTaskCard(t) {
+      const proj = projects.find(p => p.id === t.projectId);
+      const isPartner = t.assignee === "Cộng sự";
+      const assigneeBadge = isPartner
+        ? `<span class="flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-avocado-100 text-avocado-700 border border-avocado-200 text-[10px] font-bold"><i data-lucide="users" class="w-3 h-3"></i> Cộng sự</span>`
+        : `<span class="flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-pastelBlue-100 text-pastelBlue-700 border border-pastelBlue-200 text-[10px] font-bold"><i data-lucide="user" class="w-3 h-3"></i> Bạn</span>`;
+
+      const diff = getDaysDiff(t.dueDate);
+      let dueClass = "text-slate-500";
+      let dueText = t.dueDate || "";
+      if (t.dueDate) {
+        if (diff < 0) {
+          dueClass = "text-rose-600 font-bold";
+          dueText = `${t.dueDate} (Trễ ${Math.abs(diff)}d)`;
+        } else if (diff === 0) {
+          dueClass = "text-amber-600 font-bold";
+          dueText = "Hôm nay!";
+        }
+      }
+
+      return `
+        <div id="task-${t.id}" draggable="true" data-id="${t.id}"
+             class="task-card bg-white border border-[#e2ebe2] hover:border-avocado-300 rounded-2xl p-4 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] font-bold text-slate-500 max-w-[140px] truncate">${proj ? proj.name : 'Dự án'}</span>
+            ${getPriorityBadge(t.priority)}
+          </div>
+
+          <h5 class="font-bold text-xs text-slate-800 hover:text-avocado-600 transition leading-snug cursor-pointer" onclick="editTask('${t.id}')">
+            ${t.title}
+          </h5>
+
+          ${t.desc ? `<p class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">${t.desc}</p>` : ''}
+
+          <div class="flex items-center justify-between pt-2.5 border-t border-[#edf3ed]">
+            ${assigneeBadge}
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] ${dueClass} flex items-center gap-1">
+                <i data-lucide="calendar" class="w-3 h-3"></i> ${dueText}
+              </span>
+              <button onclick="editTask('${t.id}')" class="p-1 text-slate-400 hover:text-avocado-600 transition rounded" title="Sửa">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="deleteTask('${t.id}')" class="p-1 text-slate-400 hover:text-rose-600 transition rounded" title="Xóa">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderKanban() {
+      const q = document.getElementById('taskSearchInput').value.trim().toLowerCase();
+      const pFilter = document.getElementById('filterPrioritySelect').value;
+      const projFilter = document.getElementById('filterProjectSelect').value;
+
+      const filtered = tasks.filter(t => {
+        const matchQ = !q || (t.title && t.title.toLowerCase().includes(q)) || (t.desc && t.desc.toLowerCase().includes(q));
+        const matchP = pFilter === 'ALL' || t.priority === pFilter;
+        const matchProj = projFilter === 'ALL' || t.projectId === projFilter;
+        const matchAssignee = currentAssigneeFilter === 'ALL' || t.assignee === currentAssigneeFilter;
+        return matchQ && matchP && matchProj && matchAssignee;
+      });
+
+      const todoTasks = filtered.filter(t => t.status === 'TODO');
+      const doingTasks = filtered.filter(t => t.status === 'DOING');
+      const doneTasks = filtered.filter(t => t.status === 'DONE');
+
+      document.getElementById('colTodo').innerHTML = todoTasks.map(renderTaskCard).join('') || `<div class="h-24 border border-dashed border-[#c5d8e5] rounded-xl flex items-center justify-center text-slate-400 text-xs">Không có việc cần làm</div>`;
+      document.getElementById('colDoing').innerHTML = doingTasks.map(renderTaskCard).join('') || `<div class="h-24 border border-dashed border-[#c3d9c3] rounded-xl flex items-center justify-center text-slate-400 text-xs">Không có việc đang làm</div>`;
+      document.getElementById('colDone').innerHTML = doneTasks.map(renderTaskCard).join('') || `<div class="h-24 border border-dashed border-[#bee0ca] rounded-xl flex items-center justify-center text-slate-400 text-xs">Chưa có việc hoàn thành</div>`;
+
+      document.getElementById('badgeCountTodo').innerText = todoTasks.length;
+      document.getElementById('badgeCountDoing').innerText = doingTasks.length;
+      document.getElementById('badgeCountDone').innerText = doneTasks.length;
+
+      attachDragEvents();
+    }
+
+    // ─── RENDER EXPENSES TAB & SETTLEMENT CALCULATOR ────────────────────────────
+    function renderExpenses() {
+      const payerFilter = document.getElementById('filterExpensePayer').value;
+      const projFilter = document.getElementById('filterExpenseProject').value;
+
+      const filtered = expenses.filter(e => {
+        const matchPayer = payerFilter === 'ALL' || e.payer === payerFilter;
+        const matchProj = projFilter === 'ALL' || e.projectId === projFilter;
+        return matchPayer && matchProj;
+      });
+
+      const total = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      const meTotal = expenses.filter(e => e.payer === "Bạn").reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      const partnerTotal = expenses.filter(e => e.payer === "Cộng sự").reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+      document.getElementById('statTotalExpense').innerText = formatCurrency(total);
+      document.getElementById('statMeExpense').innerText = formatCurrency(meTotal);
+      document.getElementById('statPartnerExpense').innerText = formatCurrency(partnerTotal);
+
+      const meShare = total > 0 ? Math.round((meTotal / total) * 100) : 0;
+      const partnerShare = total > 0 ? Math.round((partnerTotal / total) * 100) : 0;
+      document.getElementById('statMeSharePct').innerText = `${meShare}% tổng chi`;
+      document.getElementById('statPartnerSharePct').innerText = `${partnerShare}% tổng chi`;
+
+      const fairShare = total / 2;
+      const diff = meTotal - fairShare;
+
+      if (Math.abs(diff) < 1000) {
+        document.getElementById('statSettlement').innerText = "Cân bằng 50-50";
+        document.getElementById('statSettlement').className = "text-base font-bold text-emerald-600 mt-1";
+        document.getElementById('statSettlementSub').innerText = "Hai bên đã đóng góp bằng nhau";
+      } else if (diff > 0) {
+        document.getElementById('statSettlement').innerText = `Cộng sự nợ bạn: ${formatCurrency(diff)}`;
+        document.getElementById('statSettlement').className = "text-sm font-bold text-pastelBlue-600 mt-1";
+        document.getElementById('statSettlementSub').innerText = "Cộng sự cần chuyển khoản cấn trừ cho bạn";
+      } else {
+        document.getElementById('statSettlement').innerText = `Bạn nợ cộng sự: ${formatCurrency(Math.abs(diff))}`;
+        document.getElementById('statSettlement').className = "text-sm font-bold text-avocado-600 mt-1";
+        document.getElementById('statSettlementSub').innerText = "Bạn cần chuyển khoản cấn trừ cho cộng sự";
+      }
+
+      const tbody = document.getElementById('expenseTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">Chưa có khoản chi tiêu nào được ghi nhận</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(e => {
+        const proj = projects.find(p => p.id === e.projectId);
+        const payerBadge = e.payer === "Bạn"
+          ? `<span class="px-2.5 py-0.5 rounded-lg bg-pastelBlue-100 text-pastelBlue-700 border border-pastelBlue-200 font-bold">Bạn</span>`
+          : `<span class="px-2.5 py-0.5 rounded-lg bg-avocado-100 text-avocado-700 border border-avocado-200 font-bold">Cộng sự</span>`;
+
+        return `
+          <tr class="hover:bg-[#f6f8f5] transition">
+            <td class="py-3.5 px-4 text-slate-500 font-medium">${e.date || ''}</td>
+            <td class="py-3.5 px-4 font-bold text-slate-800">${e.title}</td>
+            <td class="py-3.5 px-4 text-slate-600 font-medium">${proj ? proj.name : 'Chung'}</td>
+            <td class="py-3.5 px-4">${payerBadge}</td>
+            <td class="py-3.5 px-4 text-slate-500">Chia đôi 50/50</td>
+            <td class="py-3.5 px-4 text-right font-extrabold text-avocado-700">${formatCurrency(e.amount)}</td>
+            <td class="py-3.5 px-4 text-center">
+              <button onclick="deleteExpense('${e.id}')" class="p-1 text-slate-400 hover:text-rose-600 transition" title="Xóa khoản chi">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ─── RENDER SCHEDULE & TIMELINE ─────────────────────────────────────────────
+    function renderSchedule() {
+      const container = document.getElementById('scheduleTimelineContainer');
+      const sorted = [...tasks]
+        .filter(t => t.dueDate && t.status !== 'DONE')
+        .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+
+      if (sorted.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs font-medium">Không có công việc nào có hạn chót chưa hoàn thành!</div>`;
+        return;
+      }
+
+      container.innerHTML = sorted.map(t => {
+        const proj = projects.find(p => p.id === t.projectId);
+        const diff = getDaysDiff(t.dueDate);
+        let badgeColor = "bg-avocado-100 text-avocado-700 border-avocado-200";
+        let statusText = `Còn ${diff} ngày`;
+
+        if (diff < 0) {
+          badgeColor = "bg-rose-100 text-rose-700 border-rose-200 font-bold";
+          statusText = `Trễ hạn ${Math.abs(diff)} ngày`;
+        } else if (diff === 0) {
+          badgeColor = "bg-amber-100 text-amber-700 border-amber-200 font-bold";
+          statusText = "Đến hạn hôm nay!";
+        } else if (diff <= 3) {
+          badgeColor = "bg-amber-100 text-amber-700 border-amber-200";
+        }
+
+        return `
+          <div class="p-4 bg-[#f8faf8] border border-[#e2ebe2] rounded-2xl flex items-center justify-between gap-4 hover:border-avocado-300 transition shadow-sm">
+            <div class="flex items-center gap-3.5">
+              <span class="px-3 py-1 rounded-xl border text-[11px] font-bold ${badgeColor}">${statusText}</span>
+              <div>
+                <h5 class="font-bold text-xs text-slate-800">${t.title}</h5>
+                <p class="text-[11px] text-slate-500 mt-0.5">${proj ? proj.name : 'Dự án'} · Người làm: <strong class="text-slate-700">${t.assignee}</strong></p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-slate-500 font-mono font-medium">${t.dueDate}</span>
+              <button onclick="markTaskDone('${t.id}')" class="px-3 py-1.5 rounded-xl bg-avocado-100 text-avocado-700 hover:bg-avocado-500 hover:text-white border border-avocado-200 text-xs font-bold transition">
+                Xong
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ─── DRAG & DROP EVENTS ──────────────────────────────────────────────────────
+    function attachDragEvents() {
+      const cards = document.querySelectorAll('.task-card');
+      const columns = document.querySelectorAll('.kanban-col');
+
+      cards.forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+          draggedTaskId = card.getAttribute('data-id');
+          card.classList.add('dragging');
+          e.dataTransfer.setData('text/plain', draggedTaskId);
+        });
+
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          columns.forEach(col => col.classList.remove('drag-over'));
+        });
+      });
+
+      columns.forEach(col => {
+        col.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          col.classList.add('drag-over');
+        });
+
+        col.addEventListener('dragleave', () => {
+          col.classList.remove('drag-over');
+        });
+
+        col.addEventListener('drop', (e) => {
+          e.preventDefault();
+          col.classList.remove('drag-over');
+          const targetStatus = col.getAttribute('data-status');
+          if (draggedTaskId && targetStatus) {
+            const task = tasks.find(t => t.id === draggedTaskId);
+            if (task && task.status !== targetStatus) {
+              task.status = targetStatus;
+              saveData();
+            }
+          }
+          draggedTaskId = null;
+        });
+      });
+    }
+
+    // ─── FILTER ASSIGNEE BUTTONS ─────────────────────────────────────────────────
+    const btnAll = document.getElementById('filterAssigneeAll');
+    const btnMe = document.getElementById('filterAssigneeMe');
+    const btnPartner = document.getElementById('filterAssigneePartner');
+
+    function updateAssigneeButtons() {
+      [btnAll, btnMe, btnPartner].forEach(b => {
+        b.className = "assignee-toggle-btn px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition";
+      });
+      if (currentAssigneeFilter === "ALL") btnAll.className = "assignee-toggle-btn px-3 py-1.5 rounded-lg font-bold bg-white text-avocado-700 shadow-sm transition";
+      else if (currentAssigneeFilter === "Bạn") btnMe.className = "assignee-toggle-btn px-3 py-1.5 rounded-lg font-bold bg-white text-pastelBlue-600 shadow-sm transition";
+      else if (currentAssigneeFilter === "Cộng sự") btnPartner.className = "assignee-toggle-btn px-3 py-1.5 rounded-lg font-bold bg-white text-avocado-700 shadow-sm transition";
+      renderKanban();
+    }
+
+    btnAll.addEventListener('click', () => { currentAssigneeFilter = "ALL"; updateAssigneeButtons(); });
+    btnMe.addEventListener('click', () => { currentAssigneeFilter = "Bạn"; updateAssigneeButtons(); });
+    btnPartner.addEventListener('click', () => { currentAssigneeFilter = "Cộng sự"; updateAssigneeButtons(); });
+
+    document.getElementById('taskSearchInput').addEventListener('input', renderKanban);
+    document.getElementById('filterPrioritySelect').addEventListener('change', renderKanban);
+    document.getElementById('filterProjectSelect').addEventListener('change', renderKanban);
+    document.getElementById('filterExpensePayer').addEventListener('change', renderExpenses);
+    document.getElementById('filterExpenseProject').addEventListener('change', renderExpenses);
+
+    // ─── MODAL CONTROLS ──────────────────────────────────────────────────────────
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function openTaskModal(status = 'TODO') {
+      const form = document.getElementById('taskForm');
+      form.reset();
+      document.getElementById('taskIdInput').value = '';
+      document.getElementById('taskStatusInput').value = status;
+      document.getElementById('taskDueDateInput').value = getTodayString();
+      document.getElementById('taskModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-avocado-600"></i> Thêm công việc mới`;
+      document.getElementById('taskModal').classList.remove('hidden');
+      lucide.createIcons();
+      document.getElementById('taskTitleInput').focus();
+    }
+
+    function editTask(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+
+      document.getElementById('taskIdInput').value = task.id;
+      document.getElementById('taskTitleInput').value = task.title || '';
+      document.getElementById('taskDescInput').value = task.desc || '';
+      document.getElementById('taskProjectInput').value = task.projectId || projects[0]?.id;
+      document.getElementById('taskAssigneeInput').value = task.assignee || 'Bạn';
+      document.getElementById('taskStatusInput').value = task.status || 'TODO';
+      document.getElementById('taskPriorityInput').value = task.priority || 'MEDIUM';
+      document.getElementById('taskDueDateInput').value = task.dueDate || '';
+
+      document.getElementById('taskModalTitle').innerHTML = `<i data-lucide="edit" class="w-5 h-5 text-avocado-600"></i> Chỉnh sửa công việc`;
+      document.getElementById('taskModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function deleteTask(id) {
+      if (confirm('Bạn có chắc muốn xóa công việc này?')) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveData();
+      }
+    }
+
+    function markTaskDone(id) {
+      const t = tasks.find(item => item.id === id);
+      if (t) {
+        t.status = 'DONE';
+        saveData();
+      }
+    }
+
+    document.getElementById('taskForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('taskIdInput').value;
+      const title = document.getElementById('taskTitleInput').value.trim();
+      const desc = document.getElementById('taskDescInput').value.trim();
+      const projectId = document.getElementById('taskProjectInput').value;
+      const assignee = document.getElementById('taskAssigneeInput').value;
+      const status = document.getElementById('taskStatusInput').value;
+      const priority = document.getElementById('taskPriorityInput').value;
+      const dueDate = document.getElementById('taskDueDateInput').value;
+
+      if (!title) return;
+
+      if (id) {
+        const idx = tasks.findIndex(t => t.id === id);
+        if (idx !== -1) {
+          tasks[idx] = { ...tasks[idx], title, desc, projectId, assignee, status, priority, dueDate };
+        }
+      } else {
+        const newId = `T-${Math.floor(100 + Math.random() * 900)}`;
+        tasks.unshift({ id: newId, title, desc, projectId, assignee, status, priority, dueDate });
+      }
+
+      saveData();
+      closeModal('taskModal');
+    });
+
+    // ─── EXPENSE MODAL & FORM ────────────────────────────────────────────────────
+    function openExpenseModal() {
+      const form = document.getElementById('expenseForm');
+      form.reset();
+      document.getElementById('expenseIdInput').value = '';
+      document.getElementById('expenseDateInput').value = getTodayString();
+      document.getElementById('expenseModal').classList.remove('hidden');
+      lucide.createIcons();
+      document.getElementById('expenseTitleInput').focus();
+    }
+
+    document.getElementById('btnOpenAddExpenseModal').addEventListener('click', openExpenseModal);
+
+    function deleteExpense(id) {
+      if (confirm('Bạn có chắc muốn xóa khoản chi này?')) {
+        expenses = expenses.filter(e => e.id !== id);
+        saveData();
+      }
+    }
+
+    document.getElementById('expenseForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('expenseTitleInput').value.trim();
+      const amount = Number(document.getElementById('expenseAmountInput').value) || 0;
+      const date = document.getElementById('expenseDateInput').value;
+      const projectId = document.getElementById('expenseProjectInput').value;
+      const payer = document.getElementById('expensePayerInput').value;
+      const splitType = document.getElementById('expenseSplitInput').value;
+
+      if (!title || amount <= 0) return;
+
+      const newId = `EXP-${Math.floor(100 + Math.random() * 900)}`;
+      expenses.unshift({ id: newId, title, amount, date, projectId, payer, splitType });
+      saveData();
+      closeModal('expenseModal');
+    });
+
+    // ─── PROJECT MODAL & FORM ────────────────────────────────────────────────────
+    document.getElementById('btnNewProject').addEventListener('click', () => {
+      document.getElementById('projectForm').reset();
+      document.getElementById('projectDueDateInput').value = getTodayString();
+      document.getElementById('projectModal').classList.remove('hidden');
+      lucide.createIcons();
+      document.getElementById('projectNameInput').focus();
+    });
+
+    document.getElementById('projectForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('projectNameInput').value.trim();
+      const dueDate = document.getElementById('projectDueDateInput').value;
+      if (!name) return;
+
+      const newId = `PRJ-${projects.length + 1}`;
+      const colors = [
+        "from-avocado-400 to-pastelBlue-400",
+        "from-pastelBlue-300 to-teal-300",
+        "from-emerald-300 to-avocado-300",
+        "from-amber-300 to-orange-300"
+      ];
+      const color = colors[projects.length % colors.length];
+
+      projects.push({ id: newId, name, dueDate, color });
+      saveData();
+      closeModal('projectModal');
+    });
+
+    // ─── EXPORT CSV ──────────────────────────────────────────────────────────────
+    document.getElementById('btnExportTasksCSV').addEventListener('click', () => {
+      const headers = ["ID", "Tên công việc", "Mô tả", "Dự án", "Người phụ trách", "Trạng thái", "Độ ưu tiên", "Hạn chót"];
+      const rows = tasks.map(t => {
+        const proj = projects.find(p => p.id === t.projectId);
+        return [
+          t.id,
+          `"${(t.title || '').replace(/"/g, '""')}"`,
+          `"${(t.desc || '').replace(/"/g, '""')}"`,
+          `"${proj ? proj.name : ''}"`,
+          t.assignee,
+          t.status,
+          t.priority,
+          t.dueDate || ''
+        ];
+      });
+      downloadCSV(`TaskFlow_CongViec_${getTodayString()}.csv`, headers, rows);
+    });
+
+    document.getElementById('btnExportExpensesCSV').addEventListener('click', () => {
+      const headers = ["ID", "Ngày chi", "Khoản chi", "Dự án", "Người trả", "Số tiền (VND)"];
+      const rows = expenses.map(e => {
+        const proj = projects.find(p => p.id === e.projectId);
+        return [
+          e.id,
+          e.date || '',
+          `"${(e.title || '').replace(/"/g, '""')}"`,
+          `"${proj ? proj.name : 'Chung'}"`,
+          e.payer,
+          e.amount
+        ];
+      });
+      downloadCSV(`TaskFlow_ChiTieu_${getTodayString()}.csv`, headers, rows);
+    });
+
+    function downloadCSV(filename, headers, rows) {
+      const content = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // ─── GOOGLE SHEETS 2-WAY SYNC ────────────────────────────────────────────────
+    const syncModal = document.getElementById('syncModal');
+    const gasEndpointInput = document.getElementById('gasEndpointInput');
+
+    document.getElementById('btnOpenSyncModal').addEventListener('click', () => {
+      gasEndpointInput.value = localStorage.getItem(STORAGE_KEY_ENDPOINT) || '';
+      syncModal.classList.remove('hidden');
+      lucide.createIcons();
+    });
+
+    document.getElementById('btnPushToSheet').addEventListener('click', async () => {
+      const endpoint = gasEndpointInput.value.trim();
+      if (!endpoint) {
+        alert('Vui lòng nhập URL Google Apps Script!');
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY_ENDPOINT, endpoint);
+
+      try {
+        const btn = document.getElementById('btnPushToSheet');
+        btn.disabled = true;
+        btn.innerText = 'Đang đẩy dữ liệu...';
+
+        await fetch(endpoint, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'SAVE', tasks: tasks, expenses: expenses, projects: projects })
+        });
+
+        alert('✅ Đã đồng bộ toàn bộ Công việc và Chi tiêu lên Google Sheets!');
+        closeModal('syncModal');
+      } catch (err) {
+        alert('Lỗi đồng bộ: ' + err.message);
+      } finally {
+        document.getElementById('btnPushToSheet').disabled = false;
+        document.getElementById('btnPushToSheet').innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> Đẩy dữ liệu lên Sheet`;
+        lucide.createIcons();
+      }
+    });
+
+    document.getElementById('btnFetchFromSheet').addEventListener('click', async () => {
+      const endpoint = gasEndpointInput.value.trim();
+      if (!endpoint) {
+        alert('Vui lòng nhập URL Google Apps Script!');
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY_ENDPOINT, endpoint);
+
+      try {
+        const btn = document.getElementById('btnFetchFromSheet');
+        btn.disabled = true;
+        btn.innerText = 'Đang tải dữ liệu...';
+
+        const res = await fetch(`${endpoint}?action=GET`);
+        const data = await res.json();
+        if (data && (data.tasks || data.expenses)) {
+          if (data.tasks) tasks = data.tasks;
+          if (data.expenses) expenses = data.expenses;
+          if (data.projects) projects = data.projects;
+          saveData();
+          alert(`✅ Đã tải về thành công: ${tasks.length} công việc và ${expenses.length} khoản chi!`);
+          closeModal('syncModal');
+        } else {
+          alert('Không tìm thấy dữ liệu hợp lệ.');
+        }
+      } catch (err) {
+        alert('Lỗi khi tải từ Sheet: ' + err.message);
+      } finally {
+        document.getElementById('btnFetchFromSheet').disabled = false;
+        document.getElementById('btnFetchFromSheet').innerHTML = `<i data-lucide="download-cloud" class="w-4 h-4 text-pastelBlue-600"></i> Tải dữ liệu từ Sheet`;
+        lucide.createIcons();
+      }
+    });
+
+    // ─── RENDER ALL ─────────────────────────────────────────────────────────────
+    function renderAll() {
+      renderTodayFocus();
+      renderProjects();
+      renderKanban();
+      renderExpenses();
+      renderSchedule();
+      lucide.createIcons();
+    }
+
+    // Initialize on load
+    loadData();
+  </script>
+</body>
+</html>
